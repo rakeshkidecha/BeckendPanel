@@ -1,0 +1,76 @@
+<%- include('../Layouts/header') %>
+
+
+      <div class="page-wrapper">
+        <div class="page-breadcrumb">
+          <div class="row">
+            <div class="col-12 d-flex no-block align-items-center">
+              <h4 class="page-title">View Admin Details</h4>
+              <div class="ms-auto text-end">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                      View Admin
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+       
+        <div class="container-fluid">
+         
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Admin Records</h5>
+                  <div class="table-responsive">
+                    <table
+                      id="zero_config"
+                      class="table table-striped table-bordered"
+                    >
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Gender</th>
+                          <th>Hobby</th>
+                          <th>City</th>
+                          <th>Image</th>
+                          <th>About</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% getAdminRecords.map((item,i)=>{ %>
+                          <tr>
+                            <td valign="middle" align="middle"><%= i+1 %></td>
+                            <td valign="middle" align="middle"><%= item.name %></td>
+                            <td valign="middle" align="middle"><%= item.email %></td>
+                            <td valign="middle" align="middle"><%= item.gender %></td>
+                            <td valign="middle" align="middle"><%= item.hobby.join(', ') %></td>
+                            <td valign="middle" align="middle"><%= item.city %></td>
+                            <td valign="middle" align="middle"><img src="<%= item.admin_image %>" height="100px" title="Admin image" alt="Admin Image" /></td>
+                            <td valign="middle" align="middle"><%= item.about %></td>
+                            <td valign="middle" align="middle">
+                              <a href="/adminDelete/<%= item.id %>" class="btn btn-danger mx-2"><i class="fa fa-trash"></i></a>
+                              <a href="/adminUpdate/<%= item.id %>" class="btn btn-secondary mx-2"><i class="fa fa-edit"></i></a>
+                            </td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+
+        <%- include('../Layouts/footer') %>
