@@ -339,7 +339,7 @@
                   aria-expanded="false"
                 >
                   <img
-                    src="/images/users/1.jpg"
+                    src="<%= adminData.admin_image %>"
                     alt="user"
                     class="rounded-circle"
                     width="31"
@@ -349,11 +349,11 @@
                   class="dropdown-menu dropdown-menu-end user-dd animated"
                   aria-labelledby="navbarDropdown"
                 >
-                  <a class="dropdown-item" href="javascript:void(0)"
-                    ><i class="mdi mdi-account me-1 ms-1"></i> My Profile</a
+                  <a class="dropdown-item" href="/myProfile"
+                    ><i class="mdi mdi-account me-1 ms-1"></i> <%= adminData.name %></a
                   >
-                  <a class="dropdown-item" href="javascript:void(0)"
-                    ><i class="mdi mdi-wallet me-1 ms-1"></i> My Balance</a
+                  <a class="dropdown-item" href="/changePassword"
+                    ><i class=" fas fa-exchange-alt me-1 ms-1"></i> Change Password</a
                   >
                   <a class="dropdown-item" href="javascript:void(0)"
                     ><i class="mdi mdi-email me-1 ms-1"></i> Inbox</a

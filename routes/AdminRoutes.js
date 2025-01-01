@@ -4,9 +4,16 @@ const router = express.Router();
 const AdminCtl= require('../controller/AdminCtl');
 const Admin = require('../models/AdminModel');
 
+// login system ----
 router.get('/',AdminCtl.signIn);
 router.post('/checkSignIn',AdminCtl.checkSignIn);
 router.get('/logOut',AdminCtl.logOut);
+// --------------
+
+router.get('/myProfile',AdminCtl.myProfile);
+
+router.get('/changePassword',AdminCtl.changePassword);
+router.post('/changeNewPassword',AdminCtl.changeNewPassword);
 
 router.get('/deshBoard',AdminCtl.DashBoard);
 

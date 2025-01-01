@@ -4,8 +4,9 @@ const fs = require('fs');
 
 module.exports.DashBoard = async (req,res) =>{
     try {
-        if(req.cookies.adminData){
-            return res.render('dashBoard');
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            return res.render('admin/dashBoard',{adminData});
         }else{
             return res.redirect('/');
         }
@@ -14,29 +15,17 @@ module.exports.DashBoard = async (req,res) =>{
         return res.redirect('back');
     }
 }
+
+// add new admin ---------
 
 module.exports.addAdmin = async (req,res)=>{
     try {
-        if(req.cookies.adminData){
-            return res.render('admin/addAdmin');
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            return res.render('admin/addAdmin',{adminData});
         }else{
             return res.redirect('/');
         }
-    } catch (err) {
-        console.log("Something wrong",err);
-        return res.redirect('back');
-    }
-}
-
-module.exports.viewAdmin = async (req,res)=>{
-    try {
-        if(req.cookies.adminData){
-            const getAdminRecords = await Admin.find();
-            return res.render('admin/viewAdmin',{getAdminRecords});
-        }else{
-            return res.redirect('/');
-        }
-
     } catch (err) {
         console.log("Something wrong",err);
         return res.redirect('back');
@@ -71,6 +60,26 @@ module.exports.insertAdminRecord = async(req,res)=>{
 }
 
 
+// View admin details -----------
+
+module.exports.viewAdmin = async (req,res)=>{
+    try {
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            const getAdminRecords = await Admin.find();
+            return res.render('admin/viewAdmin',{getAdminRecords,adminData});
+        }else{
+            return res.redirect('/');
+        }
+
+    } catch (err) {
+        console.log("Something wrong",err);
+        return res.redirect('back');
+    }
+}
+
+// delete admin -----------
+
 module.exports.adminDelete = async (req,res)=>{
     try {
         const singleAdmin = await Admin.findById(req.params.id);
@@ -104,13 +113,18 @@ module.exports.adminDelete = async (req,res)=>{
     }
 }
 
+// update edmin details ----------
 
 module.exports.adminUpdate = async(req,res)=>{
     try {
-
-        const singleAdmin = await Admin.findById(req.params.id);
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            const singleAdmin = await Admin.findById(req.params.id);
+            return res.render('admin/editAdmin',{singleAdmin,adminData});
+        }else{
+            return res.redirect('/');
+        }
         
-        return res.render('admin/editAdmin',{singleAdmin});
         
     } catch (err) {
         console.log("Something wrong",err);
@@ -139,11 +153,16 @@ module.exports.editAdminRecord = async(req,res)=>{
         }
         
         req.body.name = req.body.fname+' '+req.body.lname;
-
         const editedAdminRecord = await Admin.findByIdAndUpdate(req.body.id,req.body);
 
         if(editedAdminRecord){
             console.log("Admin Record Update success fully..");
+            const newAdminData = await Admin.findById(editedAdminRecord.id);
+            const oldAdminData = req.cookies.adminData;
+            if(oldAdminData._id===newAdminData.id){
+                res.cookie('adminData',newAdminData);
+                return res.redirect('/myProfile');
+            }
             return res.redirect('/viewAdmin')
         }else{
             console.log("Faild to update Admin record..");
@@ -157,12 +176,14 @@ module.exports.editAdminRecord = async(req,res)=>{
     }
 }
 
+// Login System -----------------
+
 module.exports.signIn = async(req,res)=>{
     try {
         if(req.cookies.adminData){
             return res.redirect('/deshBoard')
         }else{
-            return res.render('signIn')
+            return res.render('admin/signIn')
         }
         
     } catch (err) {
@@ -174,8 +195,11 @@ module.exports.signIn = async(req,res)=>{
 module.exports.checkSignIn = async(req,res)=>{
     try {
         const isAsminExistCount = await Admin.find({email:req.body.email}).countDocuments();
+
         if(isAsminExistCount === 1){
+
             const isAsminExist = await Admin.findOne({email:req.body.email})
+
             if(isAsminExist.password===req.body.password){
                 res.cookie('adminData',isAsminExist);
                 return res.redirect('/deshBoard')
@@ -194,11 +218,72 @@ module.exports.checkSignIn = async(req,res)=>{
     }
 }
 
+// logout ---------------
+
 module.exports.logOut = async(req,res)=>{
     try {
         res.clearCookie('adminData');
         return res.redirect('/');
         
+    } catch (err) {
+        console.log("Something wrong",err);
+        return res.redirect('back');
+    }
+}
+
+
+// show profile --------
+module.exports.myProfile = async (req,res)=>{
+    try {
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            return res.render('admin/myProfile',{adminData});
+        }else{
+            return res.redirect('/');
+        }
+    } catch (err) {
+        console.log("Something wrong",err);
+        return res.redirect('back');
+    }
+}
+
+
+// change password 
+module.exports.changePassword = async(req,res)=>{
+    try {
+        const adminData = req.cookies.adminData;
+        if(adminData){
+            return res.render('admin/changePassword',{adminData});
+        }else{
+            return res.redirect('/');
+        }
+    } catch (err) {
+        console.log("Something wrong",err);
+        return res.redirect('back');
+    }
+}
+
+module.exports.changeNewPassword = async (req,res)=>{
+    try {
+        const adminData = req.cookies.adminData;
+        if(adminData.password === req.body.currentPassword){
+            if(req.body.currentPassword != req.body.newPassword){
+                if(req.body.newPassword===req.body.confirmPassword){
+                    await Admin.findByIdAndUpdate(adminData._id,{password:req.body.newPassword});
+                    return res.redirect('/logOut');
+                }else{
+                    console.log("New Password and Confirm password are different..");
+                    return res.redirect("back");
+                }
+            }else{
+                console.log("Current Password and New password are same please try another password");
+                return res.redirect("back");
+            }
+        }else{
+            console.log("password not match With Old password");
+            return res.redirect("back");
+        }
+
     } catch (err) {
         console.log("Something wrong",err);
         return res.redirect('back');

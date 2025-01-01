@@ -1,0 +1,61 @@
+<%- include('../Layouts/header') %>
+
+
+      <div class="page-wrapper">
+        <div class="page-breadcrumb">
+          <div class="row">
+            <div class="col-12 d-flex no-block align-items-center">
+              <h4 class="page-title">myProfile</h4>
+              <div class="ms-auto text-end">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        myProfile
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+       
+        <div class="container-fluid">
+         
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">myProfile</h5>
+                  <div class="table-responsive">
+                    <table
+                      id="zero_config"
+                      class="table table-striped table-bordered"
+                    >
+                      <thead>
+                        <tr class="row">
+                          <th class="col-4">
+                            <img src="<%= adminData.admin_image %>" alt="" width="100%">
+                          </th>
+                          <th class="col-8">
+                            <h4><%= adminData.name %></h4>
+                            <p><%= adminData.email %></p>
+                            <p>Gender:- <%= adminData.gender %></p>
+                            <p>Hobbies:- <%= adminData.hobby %></p>
+                            <p>City:- <%= adminData.city %></p>
+                            <p>About:- <%= adminData.about %></p>
+                            <a href="/adminUpdate/<%= adminData._id %>" class="btn btn-success text-white">Edit profile</a>
+                          </th>
+                        </tr>
+                      </thead>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+
+        <%- include('../Layouts/footer') %>

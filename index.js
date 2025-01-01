@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const db =  require('./config/db');
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const port = 8001;
 
 const app = express();
