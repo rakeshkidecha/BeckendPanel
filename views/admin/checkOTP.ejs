@@ -69,8 +69,8 @@
             <!-- Form -->
             <form
               class="form-horizontal mt-3"
-              id="loginform" method="post"
-              action="/checkSignIn"
+              method="post"
+              action="/verifyOtp"
             >
               <div class="row pb-4">
                 <div class="col-12">
@@ -83,27 +83,10 @@
                       ></span>
                     </div>
                     <input
-                      type="email"
+                      type="number"
                       class="form-control form-control-lg"
-                      placeholder="Email" name="email"
+                      placeholder="Enter otp" name="otp"
                       aria-label="Username"
-                      aria-describedby="basic-addon1"
-                      required=""
-                    />
-                  </div>
-                  <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                      <span
-                        class="input-group-text bg-warning text-white h-100"
-                        id="basic-addon2"
-                        ><i class="mdi mdi-lock fs-4"></i
-                      ></span>
-                    </div>
-                    <input
-                      type="password"
-                      class="form-control form-control-lg"
-                      placeholder="Password" name="password"
-                      aria-label="Password"
                       aria-describedby="basic-addon1"
                       required=""
                     />
@@ -113,22 +96,26 @@
               <div class="row border-top border-secondary">
                 <div class="col-12">
                   <div class="form-group">
-                    <div class="pt-3">
-                      <a href="/checkEmail">
-                        <button class="btn btn-info" type="button">
-                          <i class="mdi mdi-lock fs-4 me-1"></i> Lost password?
-                        </button>
-                      </a>
+                    <div class="pt-3 d-flex justify-content-between align-items-center">
+                      <div>
+                        <p id="otpExprireMsg">Otp Expire in <span id="otpTimer"></span></p>
+                        <a href="javascript:void(0)" id="resendOtp" class="text-primary fs-5 m-0" style="display: none;">resend</a>
+                      </div>
                       <button
                         class="btn btn-success float-end text-white"
                         type="submit"
                       >
-                        Login
+                        verify OTP
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
+            </form>
+            
+            <form style="display: none;" method="post" action="/verifyEmail">
+              <input type="hidden" name="email" value="<%= adminEmail %>" />
+              <button type="submit" id="btn"  class="btn btn-success float-end text-white" >Resend</button>
             </form>
           </div>
         </div>
@@ -171,6 +158,25 @@
         $("#recoverform").hide();
         $("#loginform").fadeIn();
       });
+
+
+    const otpTimer = document.querySelector('#otpTimer');
+    let count = 30;
+    const intervalId = setInterval(() => {
+      otpTimer.innerHTML = count;
+      count--;
+      if(count < 0){
+        clearInterval(intervalId);
+        document.querySelector('#otpExprireMsg').style.display = 'none';
+        document.querySelector('#resendOtp').style.display = 'block'
+      }
+    },1000);
+
+    document.getElementById('resendOtp').addEventListener('click',()=>{
+      document.getElementById('btn').click();
+    })  
+
+
     </script>
   </body>
 </html>

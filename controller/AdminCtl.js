@@ -1,10 +1,14 @@
 const Admin = require('../models/AdminModel');
+const Cryptr = require('cryptr');
+const nodemailer = require('nodemailer')
 const path = require('path');
 const fs = require('fs');
 
+const cryptr = new Cryptr('secretkeydsfsdfsdfsdg');
+
 module.exports.DashBoard = async (req,res) =>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             return res.render('admin/dashBoard',{adminData});
         }else{
@@ -20,7 +24,7 @@ module.exports.DashBoard = async (req,res) =>{
 
 module.exports.addAdmin = async (req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             return res.render('admin/addAdmin',{adminData});
         }else{
@@ -64,7 +68,7 @@ module.exports.insertAdminRecord = async(req,res)=>{
 
 module.exports.viewAdmin = async (req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             const getAdminRecords = await Admin.find();
             return res.render('admin/viewAdmin',{getAdminRecords,adminData});
@@ -117,7 +121,7 @@ module.exports.adminDelete = async (req,res)=>{
 
 module.exports.adminUpdate = async(req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             const singleAdmin = await Admin.findById(req.params.id);
             return res.render('admin/editAdmin',{singleAdmin,adminData});
@@ -158,9 +162,9 @@ module.exports.editAdminRecord = async(req,res)=>{
         if(editedAdminRecord){
             console.log("Admin Record Update success fully..");
             const newAdminData = await Admin.findById(editedAdminRecord.id);
-            const oldAdminData = req.cookies.adminData;
+            const oldAdminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
             if(oldAdminData._id===newAdminData.id){
-                res.cookie('adminData',newAdminData);
+                res.cookie('adminData',cryptr.encrypt(JSON.stringify(newAdminData)));
                 return res.redirect('/myProfile');
             }
             return res.redirect('/viewAdmin')
@@ -201,7 +205,8 @@ module.exports.checkSignIn = async(req,res)=>{
             const isAsminExist = await Admin.findOne({email:req.body.email})
 
             if(isAsminExist.password===req.body.password){
-                res.cookie('adminData',isAsminExist);
+                const cryptedAdminData = cryptr.encrypt(JSON.stringify(isAsminExist));
+                res.cookie('adminData',cryptedAdminData);
                 return res.redirect('/deshBoard')
             }else{
                 console.log("Invalid password");
@@ -235,7 +240,7 @@ module.exports.logOut = async(req,res)=>{
 // show profile --------
 module.exports.myProfile = async (req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             return res.render('admin/myProfile',{adminData});
         }else{
@@ -251,7 +256,7 @@ module.exports.myProfile = async (req,res)=>{
 // change password 
 module.exports.changePassword = async(req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData){
             return res.render('admin/changePassword',{adminData});
         }else{
@@ -265,7 +270,7 @@ module.exports.changePassword = async(req,res)=>{
 
 module.exports.changeNewPassword = async (req,res)=>{
     try {
-        const adminData = req.cookies.adminData;
+        const adminData = JSON.parse(cryptr.decrypt(req.cookies.adminData));
         if(adminData.password === req.body.currentPassword){
             if(req.body.currentPassword != req.body.newPassword){
                 if(req.body.newPassword===req.body.confirmPassword){
@@ -289,3 +294,154 @@ module.exports.changeNewPassword = async (req,res)=>{
         return res.redirect('back');
     }
 }
+
+
+// forget password -----------
+
+module.exports.verifyEmail = async (req,res)=>{
+    try {
+
+        const isExistAdminCount = await Admin.find({email:req.body.email}).countDocuments();
+
+        if(isExistAdminCount===1){
+
+            const singleAdminData = await Admin.findOne({email:req.body.email});
+
+            const OTP = Math.floor(Math.random()*10000);
+
+            const transporter = nodemailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for port 465, false for other ports
+                auth: {
+                  user: "kidecharakesh2002@gmail.com",
+                  pass: "qxjboyfehwrcgrur",
+                },
+                tls:{
+                    rejectUnauthorized:false
+                }
+            });
+
+            const info = await transporter.sendMail({
+                from: 'kidecharakesh2002@gmail.com', // sender address
+                to: singleAdminData.email, // list of receivers
+                subject: "Verify OTP", // Subject line
+                html: `<b>Your OTP is: ${OTP} </b>`, // html body
+            });
+
+            console.log("Message sent: %s", info.messageId);
+
+
+            const encryptedOtp = cryptr.encrypt(JSON.stringify(OTP));
+            const encryptedEmail = cryptr.encrypt(JSON.stringify(req.body.email));
+
+            res.cookie('verificationOtp',encryptedOtp);
+            res.cookie('adminEmail',encryptedEmail);
+
+            return res.redirect('/checkOTP');
+
+
+        }else{
+            console.log("Invalid Email");
+            return res.redirect('back');
+        }
+        
+    } catch (err) {
+        console.log("Something wrong",err);
+        return res.redirect('back')
+    }
+}
+
+module.exports.checkOtp = async (req,res)=>{
+    try {
+        if(req.cookies.verificationOtp){
+            const adminEmail = JSON.parse(cryptr.decrypt(req.cookies.adminEmail));
+            return res.render('admin/checkOTP',{adminEmail});
+        }else{
+            return res.redirect('/');
+        }
+    } catch (err) {
+        console.log("something wrong");
+        return res.redirect('back')
+    }
+}
+
+module.exports.verifyOtp = async(req,res)=>{
+    try {
+
+        if(!req.cookies.verificationOtp){
+            console.log("Somthing wrong please try again...");
+            return res.redirect('/');
+        }
+
+        const verificationOtp = JSON.parse(cryptr.decrypt(req.cookies.verificationOtp));
+
+        if(verificationOtp == req.body.otp){
+            res.clearCookie('verificationOtp');
+            return res.redirect('/forgetPassword')
+        }else{
+            console.log("Invalid OTP");
+            return res.redirect('back');
+        }
+        
+    } catch (err) {
+        console.log("Something wrong",err)
+        return res.redirect('back');
+    }
+}
+
+module.exports.forgetPassword = async (req,res)=>{
+    try {
+       
+        if(req.cookies.adminEmail){
+            return res.render('admin/forgetPassword');
+        }else{
+            return res.redirect('/');
+        }
+        
+    } catch (err) {
+        console.log("Something wrong",err)
+        return res.redirect('back');
+    }
+}
+
+module.exports.setNewPassword = async (req,res)=>{
+    try {
+
+        if(!req.cookies.adminEmail){
+            console.log("Somthing wrong please try again...");
+            return res.redirect('/');
+        }
+
+        const adminEmail = JSON.parse(cryptr.decrypt(req.cookies.adminEmail));
+
+        if(req.body.newPassword === req.body.confirmPassword){
+
+            const isExistAdminDataCount = await Admin.find({email:adminEmail}).countDocuments();
+
+            if(isExistAdminDataCount === 1){
+                const isExistAdminData = await Admin.findOne({email:adminEmail});
+                const updatePassword = await Admin.findByIdAndUpdate(isExistAdminData.id,{password:req.body.newPassword});
+                if(updatePassword){
+                    console.log("Password update successfully");
+                    res.clearCookie('adminEmail');
+                    return res.redirect('/');
+                }else{
+                    console.log("Password update faild..");
+                    return res.redirect('back');
+                }
+            }else{
+                console.log("Email not Exist");
+                return res.redirect('back');
+            }
+        }else{
+            console.log("new password and confirm passWord are not same...");
+            return res.redirect('back');
+        }
+    } catch (err) {
+        console.log("Something Wrong",err)
+        return res.redirect('back');
+    }
+}
+
+//-------------------
