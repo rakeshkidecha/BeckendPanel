@@ -38,7 +38,7 @@ router.post('/setNewPassword',AdminCtl.setNewPassword);
 //-----------
 
 
-router.get('/deshBoard',AdminCtl.DashBoard);
+router.get('/dashBoard',AdminCtl.DashBoard);
 
 router.get('/addAdmin',AdminCtl.addAdmin);
 

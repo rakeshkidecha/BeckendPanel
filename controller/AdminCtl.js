@@ -185,7 +185,7 @@ module.exports.editAdminRecord = async(req,res)=>{
 module.exports.signIn = async(req,res)=>{
     try {
         if(req.cookies.adminData){
-            return res.redirect('/deshBoard')
+            return res.redirect('/dashBoard')
         }else{
             return res.render('admin/signIn')
         }
@@ -207,7 +207,7 @@ module.exports.checkSignIn = async(req,res)=>{
             if(isAsminExist.password===req.body.password){
                 const cryptedAdminData = cryptr.encrypt(JSON.stringify(isAsminExist));
                 res.cookie('adminData',cryptedAdminData);
-                return res.redirect('/deshBoard')
+                return res.redirect('/dashBoard')
             }else{
                 console.log("Invalid password");
                 return res.redirect('back')
